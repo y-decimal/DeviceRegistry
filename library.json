@@ -1,0 +1,22 @@
+{
+    "name": "DeviceRegistry",
+    "description": "A library for managing a registry of devices, allowing for adding, removing, and querying devices.",
+    "version": "1.0.0",
+    "keywords": [
+        "device",
+        "registry",
+        "management",
+        "arduino"
+    ],
+    "authors": [
+        {
+            "name": "y-decimal"
+        }
+    ],
+    "frameworks": [
+        "Arduino"
+    ],
+    "platforms": [
+        "espressif32"
+    ]
+}
