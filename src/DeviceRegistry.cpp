@@ -7,41 +7,65 @@ DeviceRegistry::DeviceRegistry()
 #endif
 }
 
-bool DeviceRegistry::addDevice(const char *deviceName, const uint8_t *macPtr)
+bool DeviceRegistry::addDevice(uint8_t deviceID, const uint8_t *macPtr)
 {
-    if (table.find(deviceName) != table.end())
+    if (deviceID >= REGISTRY_ARRAY_SIZE)
+    {
+        return false; // ID out of bounds
+    }
+
+    if (memcmp(registry[deviceID], BroadCastMac, 6) == 0)
     {
         return false; // Device already exists
     }
 
-    MacArray macArray;
-    memcpy(macArray.data(), macPtr, 6);
-    table[deviceName] = macArray;
+    memcpy(registry[deviceID], macPtr, 6);
+
+    if (memcmp(registry[deviceID], macPtr, 6) != 0)
+    {
+        return false; // Copying failed
+    }
+
     return true;
 }
 
-bool DeviceRegistry::removeDevice(const char *deviceName)
+bool DeviceRegistry::removeDevice(uint8_t deviceID)
 {
-    return table.erase(deviceName) > 0;
+    if (addDevice(deviceID, BroadCastMac) == true)
+    {
+        return true;
+    }
+    return false;
 }
 
-const uint8_t *DeviceRegistry::getDeviceMac(const char *deviceName) const
+const uint8_t *DeviceRegistry::getDeviceMac(uint8_t deviceID) const
 {
-    if (table.find(deviceName) == table.end())
+    if (deviceID >= REGISTRY_ARRAY_SIZE)
     {
-        return nullptr; // Device not found
+        return NULL; // ID out of bounds
     }
-    return table.at(deviceName).data();
+
+    if (memcmp(registry[deviceID], BroadCastMac, 6) == 0)
+    {
+        return NULL; // Device not registered
+    }
+
+    return registry[deviceID];
 }
 
-bool DeviceRegistry::updateDeviceMac(const char *deviceName, const uint8_t *newMacPtr)
+bool DeviceRegistry::updateDeviceMac(uint8_t deviceID, const uint8_t *newMacPtr)
 {
-    if (table.find(deviceName) == table.end())
+    if (deviceID >= REGISTRY_ARRAY_SIZE)
     {
-        return false; // Device not found
+        return false; // ID out of bounds
     }
 
-    memcpy(table[deviceName].data(), newMacPtr, 6);
+    if (memcmp(registry[deviceID], BroadCastMac, 6) == 0)
+    {
+        return false; // Device not registered
+    }
+
+    memcpy(registry[deviceID], newMacPtr, 6);
     return true;
 }
 
@@ -49,7 +73,7 @@ void DeviceRegistry::saveToFlash()
 {
 #if USE_FLASH
     prefs.begin(REGISTRY_NAMESPACE, false);
-    prefs.putBytes(REGISTRY_KEY, (const uint8_t *)&table, sizeof(table));
+    prefs.putBytes(REGISTRY_KEY, (const uint8_t *)&registry, sizeof(registry));
     prefs.end();
 #endif
 }
@@ -58,10 +82,12 @@ void DeviceRegistry::readFromFlash()
 {
 #if USE_FLASH
     prefs.begin(REGISTRY_NAMESPACE, false);
-    if (prefs.getBytes(REGISTRY_KEY, (uint8_t *)&table, sizeof(table)) == 0)
+    if (prefs.getBytes(REGISTRY_KEY, (uint8_t *)&registry, sizeof(registry)) == 0)
     {
-        // If no data was read, initialize the table to default values
-        table.clear();
+        for (uint8_t iD = 0; iD <= REGISTRY_ARRAY_SIZE; iD++)
+        {
+            memcpy(registry[iD], BroadCastMac, 6);
+        }
     }
     prefs.end();
 #endif
