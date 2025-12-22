@@ -17,6 +17,7 @@
 
 using MacArray = uint8_t[6];
 constexpr uint8_t REGISTRY_ARRAY_SIZE = 251;
+constexpr uint8_t BroadCastMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 // First 251 IDs (0-250) used for devices, (251-255) reserved for error handling
 
 enum class RegistryStatus : uint8_t
