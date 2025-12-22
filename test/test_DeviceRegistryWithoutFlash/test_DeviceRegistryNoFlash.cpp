@@ -12,7 +12,7 @@ void tearDown(void)
 {
 }
 
-void test_USE_FLASH_true(void)
+void test_USE_FLASH_false(void)
 {
 #if USE_FLASH
     TEST_FAIL_MESSAGE("USE_FLASH is true");
@@ -108,7 +108,7 @@ void setup()
 {
     delay(2000); // Wait for serial monitor
     UNITY_BEGIN();
-    RUN_TEST(test_USE_FLASH_true);
+    RUN_TEST(test_USE_FLASH_false);
     RUN_TEST(test_getDeviceMac_found);
     RUN_TEST(test_getDeviceMac_not_found);
     RUN_TEST(test_getUpdateDeviceMac_found);
