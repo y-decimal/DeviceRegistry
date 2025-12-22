@@ -46,7 +46,7 @@ public:
 #endif
 
 private:
-    MacArray registry[REGISTRY_ARRAY_SIZE]{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    MacArray registry[REGISTRY_ARRAY_SIZE]{};
 
     Preferences prefs;
 
