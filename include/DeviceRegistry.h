@@ -15,7 +15,7 @@
 #include <map>
 #include <Preferences.h>
 
-using MacArray = std::array<uint8_t, 6>;
+using MacArray = uint8_t[6];
 constexpr uint8_t REGISTRY_ARRAY_SIZE = 251;
 // First 251 IDs (0-250) used for devices, (251-255) reserved for error handling
 
@@ -32,11 +32,11 @@ class DeviceRegistry
 public:
     DeviceRegistry();
 
-    bool addDevice(const char *deviceName, const uint8_t *macPtr);
-    bool removeDevice(const char *deviceName);
+    bool addDevice(uint8_t deviceID, const uint8_t *macPtr);
+    bool removeDevice(uint8_t deviceID);
 
-    const uint8_t *getDeviceMac(const char *deviceName) const;
-    bool updateDeviceMac(const char *deviceName, const uint8_t *newMacPtr);
+    const uint8_t *getDeviceMac(uint8_t deviceID) const;
+    bool updateDeviceMac(uint8_t deviceID, const uint8_t *newMacPtr);
 
     void saveToFlash();
 
@@ -45,7 +45,7 @@ public:
 #endif
 
 private:
-    std::map<const char *, MacArray> table;
+    MacArray registry[REGISTRY_ARRAY_SIZE]{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
     Preferences prefs;
 
