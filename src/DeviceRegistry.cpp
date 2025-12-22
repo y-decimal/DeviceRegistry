@@ -42,12 +42,12 @@ const uint8_t *DeviceRegistry::getDeviceMac(uint8_t deviceID) const
 {
     if (deviceID >= REGISTRY_ARRAY_SIZE)
     {
-        return NULL; // ID out of bounds
+        return nullptr; // ID out of bounds
     }
 
     if (memcmp(registry[deviceID], BroadCastMac, 6) == 0)
     {
-        return NULL; // Device not registered
+        return nullptr; // Device not registered
     }
 
     return registry[deviceID];
