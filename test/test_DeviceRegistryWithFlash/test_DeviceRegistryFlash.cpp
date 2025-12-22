@@ -53,8 +53,10 @@ void test_Registry_flash_initially_empty(void)
 void test_Registry_flash_not_empty_after_save(void)
 {
     uint8_t testMac[6] = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01};
-    const char *deviceName = "FlashTestDevice";
-    registry->addDevice(deviceName, testMac);
+    uint8_t deviceID = 231;
+    bool success = registry->addDevice(deviceID, testMac);
+    TEST_ASSERT_TRUE(success);
+    
     registry->saveToFlash();
 
     TEST_ASSERT_TRUE(check_FLASH_not_empty());
@@ -64,7 +66,6 @@ void test_Registry_still_empty_after_test(void)
 {
     TEST_ASSERT_TRUE(check_FLASH_empty());
 }
-
 
 void setup()
 {
