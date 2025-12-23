@@ -6,7 +6,7 @@ DeviceRegistry<DeviceID, static_cast<size_t>(DeviceID::Count)> *registry;
 
 void setUp(void)
 {
-    registry = new DeviceRegistry<DeviceID, static_cast<size_t>(DeviceID::Count)>;
+    registry = new DeviceRegistry<DeviceID, static_cast<size_t>(DeviceID::Count)>();
 }
 
 void tearDown(void)
