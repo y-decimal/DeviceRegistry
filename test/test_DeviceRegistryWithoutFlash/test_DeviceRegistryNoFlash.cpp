@@ -6,10 +6,12 @@ DeviceRegistry *registry;
 
 void setUp(void)
 {
+    registry = new DeviceRegistry();
 }
 
 void tearDown(void)
 {
+    delete registry;
 }
 
 void test_USE_FLASH_false(void)
@@ -127,7 +129,6 @@ void test_removeDevice_not_found(void)
 void setup()
 {
     delay(2000); // Wait for serial monitor
-    registry = new DeviceRegistry();
     UNITY_BEGIN();
     RUN_TEST(test_USE_FLASH_false);
     RUN_TEST(test_all_Macs_initially_broadcast);
