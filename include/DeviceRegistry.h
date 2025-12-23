@@ -52,6 +52,8 @@ private:
     static constexpr const char *REGISTRY_NAMESPACE = "dReg";
     static constexpr const char *REGISTRY_KEY = "val";
 
+    static constexpr size_t toIndex(DeviceID id);
+
 #ifndef UNIT_TEST
     void readFromFlash();
 #endif
@@ -68,7 +70,8 @@ DeviceRegistry<DeviceID, Count>::DeviceRegistry()
 template <typename DeviceID, size_t Count>
 bool DeviceRegistry<DeviceID, Count>::addDevice(uint8_t deviceID, const uint8_t *macPtr)
 {
-    if (deviceID >= REGISTRY_ARRAY_SIZE)
+    deviceID = toIndex(deviceID);
+    if (deviceID >= toIndex(Count))
     {
         return false; // ID out of bounds
     }
@@ -97,7 +100,9 @@ bool DeviceRegistry<DeviceID, Count>::removeDevice(uint8_t deviceID)
 template <typename DeviceID, size_t Count>
 const uint8_t *DeviceRegistry<DeviceID, Count>::getDeviceMac(uint8_t deviceID) const
 {
-    if (deviceID >= REGISTRY_ARRAY_SIZE)
+
+    deviceID = toIndex(deviceID);
+    if (deviceID >= deviceID(Count))
     {
         return nullptr; // ID out of bounds
     }
@@ -113,7 +118,9 @@ const uint8_t *DeviceRegistry<DeviceID, Count>::getDeviceMac(uint8_t deviceID) c
 template <typename DeviceID, size_t Count>
 bool DeviceRegistry<DeviceID, Count>::updateDeviceMac(uint8_t deviceID, const uint8_t *newMacPtr)
 {
-    if (deviceID >= REGISTRY_ARRAY_SIZE)
+    deviceID = toIndex(deviceID);
+
+    if (deviceID >= toIndex(Count))
     {
         return false; // ID out of bounds
     }
@@ -148,5 +155,12 @@ void DeviceRegistry<DeviceID, Count>::readFromFlash()
     prefs.end();
 }
 #endif
+
+template <typename DeviceID, size_t Count>
+constexpr size_t DeviceRegistry<DeviceID, Count>::
+    toIndex(DeviceID deviceID)
+{
+    return static_cast<size_t>(deviceID);
+}
 
 #endif
