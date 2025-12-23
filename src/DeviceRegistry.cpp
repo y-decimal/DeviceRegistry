@@ -14,14 +14,14 @@ bool DeviceRegistry::addDevice(uint8_t deviceID, const uint8_t *macPtr)
         return false; // ID out of bounds
     }
 
-    if (memcmp(registry[deviceID], BroadCastMac, 6) == 0)
+    if (memcmp(registry[deviceID].macData, BroadCastMac, 6) == 0)
     {
         return false; // Device already exists
     }
 
-    memcpy(registry[deviceID], macPtr, 6);
+    memcpy(registry[deviceID].macData, macPtr, 6);
 
-    if (memcmp(registry[deviceID], macPtr, 6) != 0)
+    if (memcmp(registry[deviceID].macData, macPtr, 6) != 0)
     {
         return false; // Copying failed
     }
@@ -45,12 +45,12 @@ const uint8_t *DeviceRegistry::getDeviceMac(uint8_t deviceID) const
         return nullptr; // ID out of bounds
     }
 
-    if (memcmp(registry[deviceID], BroadCastMac, 6) == 0)
+    if (memcmp(registry[deviceID].macData, BroadCastMac, 6) == 0)
     {
         return nullptr; // Device not registered
     }
 
-    return registry[deviceID];
+    return registry[deviceID].macData;
 }
 
 bool DeviceRegistry::updateDeviceMac(uint8_t deviceID, const uint8_t *newMacPtr)
@@ -60,12 +60,12 @@ bool DeviceRegistry::updateDeviceMac(uint8_t deviceID, const uint8_t *newMacPtr)
         return false; // ID out of bounds
     }
 
-    if (memcmp(registry[deviceID], BroadCastMac, 6) == 0)
+    if (memcmp(registry[deviceID].macData, BroadCastMac, 6) == 0)
     {
         return false; // Device not registered
     }
 
-    memcpy(registry[deviceID], newMacPtr, 6);
+    memcpy(registry[deviceID].macData, newMacPtr, 6);
     return true;
 }
 

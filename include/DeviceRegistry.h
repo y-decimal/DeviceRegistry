@@ -27,6 +27,11 @@ enum class RegistryStatus : uint8_t
     ERROR_MAC_NOT_FOUND = 253
 };
 
+struct MacEntry
+{
+    uint8_t macData[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+};
+
 class DeviceRegistry
 {
 
@@ -46,7 +51,7 @@ public:
 #endif
 
 private:
-    MacArray registry[REGISTRY_ARRAY_SIZE]{};
+    MacEntry registry[REGISTRY_ARRAY_SIZE]{};
 
     Preferences prefs;
 
