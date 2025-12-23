@@ -21,6 +21,20 @@ void test_USE_FLASH_false(void)
 #endif
 }
 
+void test_all_Macs_initially_broadcast(void)
+{
+    bool isBroadcast = false;
+    for (int i = 0; i < REGISTRY_ARRAY_SIZE; i++)
+    {
+        isBroadcast = (memcmp(registry->getDeviceMac(i), BroadCastMac, 6) == 0);
+        if (!isBroadcast)
+        {
+            break;
+        }
+        TEST_ASSERT_TRUE(isBroadcast);
+    }
+}
+
 void test_getDeviceMac_found(void)
 {
     uint8_t testMac[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
@@ -116,6 +130,7 @@ void setup()
     registry = new DeviceRegistry();
     UNITY_BEGIN();
     RUN_TEST(test_USE_FLASH_false);
+    RUN_TEST(test_all_Macs_initially_broadcast);
     RUN_TEST(test_getDeviceMac_found);
     RUN_TEST(test_getDeviceMac_not_found);
     RUN_TEST(test_getUpdateDeviceMac_found);
