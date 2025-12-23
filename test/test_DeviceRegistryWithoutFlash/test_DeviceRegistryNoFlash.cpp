@@ -51,11 +51,15 @@ void test_getDeviceMac_found(void)
 void test_getDeviceMac_not_found(void)
 {
     const uint8_t *returnedMac = registry->getDeviceMac(86);
+    TEST_ASSERT_NULL(returnedMac);
+    if (returnedMac == nullptr)
+    {
+        return;
+    }
     if (memcmp(returnedMac, BroadCastMac, 6) == 0)
     {
         TEST_FAIL_MESSAGE("Returned Broadcast MAC");
     }
-    TEST_ASSERT_NULL(returnedMac);
 }
 
 void test_getUpdateDeviceMac_found(void)
