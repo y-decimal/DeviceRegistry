@@ -16,7 +16,6 @@
 #include <Preferences.h>
 
 using MacArray = uint8_t[6];
-constexpr uint8_t REGISTRY_ARRAY_SIZE = 251;
 constexpr uint8_t BroadCastMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 // First 251 IDs (0-250) used for devices, (251-255) reserved for error handling
 
@@ -32,11 +31,11 @@ class DeviceRegistry
 public:
     DeviceRegistry();
 
-    bool addDevice(uint8_t deviceID, const uint8_t *macPtr);
-    bool removeDevice(uint8_t deviceID);
+    bool addDevice(DeviceID deviceID, const uint8_t *macPtr);
+    bool removeDevice(DeviceID deviceID);
 
-    const uint8_t *getDeviceMac(uint8_t deviceID) const;
-    bool updateDeviceMac(uint8_t deviceID, const uint8_t *newMacPtr);
+    const uint8_t *getDeviceMac(DeviceID deviceID) const;
+    bool updateDeviceMac(DeviceID deviceID, const uint8_t *newMacPtr);
 
     void saveToFlash();
 
@@ -60,7 +59,8 @@ private:
 };
 
 template <typename DeviceID, size_t Count>
-DeviceRegistry<DeviceID, Count>::DeviceRegistry()
+DeviceRegistry<DeviceID, Count>::
+    DeviceRegistry()
 {
 #if USE_FLASH
     DeviceRegistry::readFromFlash();
@@ -68,7 +68,8 @@ DeviceRegistry<DeviceID, Count>::DeviceRegistry()
 }
 
 template <typename DeviceID, size_t Count>
-bool DeviceRegistry<DeviceID, Count>::addDevice(uint8_t deviceID, const uint8_t *macPtr)
+bool DeviceRegistry<DeviceID, Count>::
+    addDevice(DeviceID deviceID, const uint8_t *macPtr)
 {
     deviceID = toIndex(deviceID);
     if (deviceID >= toIndex(Count))
@@ -92,13 +93,15 @@ bool DeviceRegistry<DeviceID, Count>::addDevice(uint8_t deviceID, const uint8_t 
 }
 
 template <typename DeviceID, size_t Count>
-bool DeviceRegistry<DeviceID, Count>::removeDevice(uint8_t deviceID)
+bool DeviceRegistry<DeviceID, Count>::
+    removeDevice(DeviceID deviceID)
 {
     return addDevice(deviceID, BroadCastMac);
 }
 
 template <typename DeviceID, size_t Count>
-const uint8_t *DeviceRegistry<DeviceID, Count>::getDeviceMac(uint8_t deviceID) const
+const uint8_t *DeviceRegistry<DeviceID, Count>::
+    getDeviceMac(DeviceID deviceID) const
 {
 
     deviceID = toIndex(deviceID);
@@ -116,7 +119,8 @@ const uint8_t *DeviceRegistry<DeviceID, Count>::getDeviceMac(uint8_t deviceID) c
 }
 
 template <typename DeviceID, size_t Count>
-bool DeviceRegistry<DeviceID, Count>::updateDeviceMac(uint8_t deviceID, const uint8_t *newMacPtr)
+bool DeviceRegistry<DeviceID, Count>::
+    updateDeviceMac(DeviceID deviceID, const uint8_t *newMacPtr)
 {
     deviceID = toIndex(deviceID);
 
@@ -148,7 +152,7 @@ template <typename DeviceID, size_t Count>
 void DeviceRegistry<DeviceID, Count>::readFromFlash()
 {
 #if USE_FLASH
-    prefs.begin(REGISTRY_NAMESPACE, false);
+    prefs.begin(REGISTRY_NAMESPACE, true);
     if (prefs.getBytes(REGISTRY_KEY, (uint8_t *)&registry, sizeof(registry)) == 0)
     {
     }
