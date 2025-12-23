@@ -44,7 +44,7 @@ public:
 #endif
 
 private:
-    MacEntry registry[REGISTRY_ARRAY_SIZE]{};
+    MacEntry registry[Count]{};
 
     Preferences prefs;
 
@@ -71,20 +71,20 @@ template <typename DeviceID, size_t Count>
 bool DeviceRegistry<DeviceID, Count>::
     addDevice(DeviceID deviceID, const uint8_t *macPtr)
 {
-    deviceID = toIndex(deviceID);
-    if (deviceID >= toIndex(Count))
+    size_t index = toIndex(deviceID);
+    if (index >= Count)
     {
         return false; // ID out of bounds
     }
 
-    if (memcmp(registry[deviceID].macData, BroadCastMac, 6) == 0)
+    if (memcmp(registry[index].macData, BroadCastMac, 6) == 0)
     {
         return false; // Device already exists
     }
 
-    memcpy(registry[deviceID].macData, macPtr, 6);
+    memcpy(registry[index].macData, macPtr, 6);
 
-    if (memcmp(registry[deviceID].macData, macPtr, 6) != 0)
+    if (memcmp(registry[index].macData, macPtr, 6) != 0)
     {
         return false; // Copying failed
     }
@@ -103,38 +103,37 @@ template <typename DeviceID, size_t Count>
 const uint8_t *DeviceRegistry<DeviceID, Count>::
     getDeviceMac(DeviceID deviceID) const
 {
-
-    deviceID = toIndex(deviceID);
-    if (deviceID >= deviceID(Count))
+    size_t index = toIndex(deviceID);
+    if (index >= Count)
     {
         return nullptr; // ID out of bounds
     }
 
-    if (memcmp(registry[deviceID].macData, BroadCastMac, 6) == 0)
+    if (memcmp(registry[index].macData, BroadCastMac, 6) == 0)
     {
         return nullptr; // Device not registered
     }
 
-    return registry[deviceID].macData;
+    return registry[index].macData;
 }
 
 template <typename DeviceID, size_t Count>
 bool DeviceRegistry<DeviceID, Count>::
     updateDeviceMac(DeviceID deviceID, const uint8_t *newMacPtr)
 {
-    deviceID = toIndex(deviceID);
+    size_t index = toIndex(deviceID);
 
-    if (deviceID >= toIndex(Count))
+    if (index >= Count)
     {
         return false; // ID out of bounds
     }
 
-    if (memcmp(registry[deviceID].macData, BroadCastMac, 6) == 0)
+    if (memcmp(registry[index].macData, BroadCastMac, 6) == 0)
     {
         return false; // Device not registered
     }
 
-    memcpy(registry[deviceID].macData, newMacPtr, 6);
+    memcpy(registry[index].macData, newMacPtr, 6);
     return true;
 }
 
@@ -157,8 +156,8 @@ void DeviceRegistry<DeviceID, Count>::readFromFlash()
     {
     }
     prefs.end();
-}
 #endif
+}
 
 template <typename DeviceID, size_t Count>
 constexpr size_t DeviceRegistry<DeviceID, Count>::
