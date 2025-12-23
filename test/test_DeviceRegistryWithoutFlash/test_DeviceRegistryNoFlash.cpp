@@ -1,12 +1,12 @@
 #include <unity.h>
 #include <DeviceRegistry.h>
-#include <DeviceRegistry.cpp>
+#include <Test_DeviceID.h>
 
-DeviceRegistry *registry;
+DeviceRegistry<DeviceID, static_cast<size_t>(DeviceID::Count)> *registry;
 
 void setUp(void)
 {
-    registry = new DeviceRegistry();
+    registry = new DeviceRegistry<DeviceID, static_cast<size_t>(DeviceID::Count)>;
 }
 
 void tearDown(void)
@@ -26,9 +26,10 @@ void test_USE_FLASH_false(void)
 void test_all_Macs_initially_broadcast(void)
 {
     bool isBroadcast = false;
-    for (int i = 0; i < REGISTRY_ARRAY_SIZE; i++)
+    for (size_t i = 0; i < static_cast<size_t>(DeviceID::Count); i++)
     {
-        isBroadcast = (memcmp(registry->getDeviceMac(i), BroadCastMac, 6) == 0);
+        DeviceID id = static_cast<DeviceID>(i);
+        isBroadcast = (memcmp(registry->getDeviceMac(id), BroadCastMac, 6) == 0);
         if (!isBroadcast)
         {
             break;
@@ -40,7 +41,7 @@ void test_all_Macs_initially_broadcast(void)
 void test_getDeviceMac_found(void)
 {
     uint8_t testMac[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
-    uint8_t deviceID = 194;
+    DeviceID deviceID = DeviceID::TestDevice1;
     registry->addDevice(deviceID, testMac);
 
     const uint8_t *returnedMac = registry->getDeviceMac(deviceID);
@@ -50,7 +51,7 @@ void test_getDeviceMac_found(void)
 
 void test_getDeviceMac_not_found(void)
 {
-    const uint8_t *returnedMac = registry->getDeviceMac(86);
+    const uint8_t *returnedMac = registry->getDeviceMac(DeviceID::TestDevice3);
     TEST_ASSERT_NULL(returnedMac);
     if (returnedMac == nullptr)
     {
@@ -66,7 +67,7 @@ void test_getUpdateDeviceMac_found(void)
 {
     uint8_t initialMac[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
     uint8_t newMac[6] = {0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB};
-    uint8_t deviceID = 31;
+    DeviceID deviceID = DeviceID::TestDevice2;
 
     bool addResult = registry->addDevice(deviceID, initialMac);
     TEST_ASSERT_TRUE(addResult);
@@ -84,7 +85,7 @@ void test_getUpdateDeviceMac_found(void)
 void test_getUpdateDeviceMac_not_found(void)
 {
     uint8_t newMac[6] = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01};
-    uint8_t deviceID = 64;
+    DeviceID deviceID = DeviceID::TestDevice4;
 
     bool updateResult = registry->updateDeviceMac(deviceID, newMac);
     TEST_ASSERT_FALSE(updateResult);
@@ -94,8 +95,8 @@ void test_getDeviceMac_multiple_devices(void)
 {
     uint8_t mac1[6] = {0x10, 0x20, 0x30, 0x40, 0x50, 0x60};
     uint8_t mac2[6] = {0x70, 0x80, 0x90, 0xA0, 0xB0, 0xC0};
-    uint8_t deviceID1 = 23;
-    uint8_t deviceID2 = 24;
+    DeviceID deviceID1 = DeviceID::TestDevice1;
+    DeviceID deviceID2 = DeviceID::TestDevice2;
 
     registry->addDevice(deviceID1, mac1);
     registry->addDevice(deviceID2, mac2);
@@ -112,7 +113,7 @@ void test_getDeviceMac_multiple_devices(void)
 void test_removeDevice_found(void)
 {
     uint8_t testMac[6] = {0xAB, 0xCD, 0xEF, 0x12, 0x34, 0x56};
-    uint8_t deviceID = 75;
+    DeviceID deviceID = DeviceID::TestDevice4;
 
     registry->addDevice(deviceID, testMac);
     bool removeResult = registry->removeDevice(deviceID);
@@ -124,7 +125,7 @@ void test_removeDevice_found(void)
 
 void test_removeDevice_not_found(void)
 {
-    uint8_t deviceID = 82;
+    DeviceID deviceID = DeviceID::TestDevice2;
 
     bool removeResult = registry->removeDevice(deviceID);
     TEST_ASSERT_FALSE(removeResult);
