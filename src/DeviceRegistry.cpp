@@ -31,11 +31,7 @@ bool DeviceRegistry::addDevice(uint8_t deviceID, const uint8_t *macPtr)
 
 bool DeviceRegistry::removeDevice(uint8_t deviceID)
 {
-    if (addDevice(deviceID, BroadCastMac) == true)
-    {
-        return true;
-    }
-    return false;
+    return addDevice(deviceID, BroadCastMac);
 }
 
 const uint8_t *DeviceRegistry::getDeviceMac(uint8_t deviceID) const
@@ -84,10 +80,6 @@ void DeviceRegistry::readFromFlash()
     prefs.begin(REGISTRY_NAMESPACE, false);
     if (prefs.getBytes(REGISTRY_KEY, (uint8_t *)&registry, sizeof(registry)) == 0)
     {
-        for (uint8_t iD = 0; iD <= REGISTRY_ARRAY_SIZE; iD++)
-        {
-            memcpy(registry[iD], BroadCastMac, 6);
-        }
     }
     prefs.end();
 #endif
