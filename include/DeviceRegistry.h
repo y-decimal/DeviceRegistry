@@ -77,14 +77,18 @@ bool DeviceRegistry<DeviceID, Count>::
         return false; // ID out of bounds
     }
 
-    if (memcmp(registry[index].macData, BroadCastMac, 6) == 0)
+    if (!memcmp(registry[index].macData, BroadCastMac, 6) == 0)
+    // memcmp returns 0 if macData = BroadCastMac
+    // we invert to check if macData != BroadCastMac
     {
         return false; // Device already exists
     }
 
     memcpy(registry[index].macData, macPtr, 6);
 
-    if (memcmp(registry[index].macData, macPtr, 6) != 0)
+    if (!memcmp(registry[index].macData, macPtr, 6) == 0)
+    // memcmp returns 0 if macData = macPtr
+    // we invert to check if macData != macPtr
     {
         return false; // Copying failed
     }
@@ -96,7 +100,7 @@ template <typename DeviceID, size_t Count>
 bool DeviceRegistry<DeviceID, Count>::
     removeDevice(DeviceID deviceID)
 {
-    return addDevice(deviceID, BroadCastMac);
+    return updateDeviceMac(deviceID, BroadCastMac);
 }
 
 template <typename DeviceID, size_t Count>
