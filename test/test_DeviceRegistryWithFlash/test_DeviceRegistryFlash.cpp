@@ -1,8 +1,8 @@
 #include <unity.h>
 #include <DeviceRegistry.h>
-#include <DeviceRegistry.cpp>
+#include <Test_DeviceID.h>
 
-DeviceRegistry *registry;
+DeviceRegistry<DeviceID, static_cast<size_t>(DeviceID::Count)> *registry;
 Preferences unitPrefs;
 
 void setUp(void)
@@ -10,7 +10,7 @@ void setUp(void)
     unitPrefs.begin("dReg", false);
     unitPrefs.clear();
     unitPrefs.end();
-    registry = new DeviceRegistry();
+    registry = new DeviceRegistry<DeviceID, static_cast<size_t>(DeviceID::Count)>();
 }
 
 void tearDown(void)
@@ -53,10 +53,10 @@ void test_Registry_flash_initially_empty(void)
 void test_Registry_flash_not_empty_after_save(void)
 {
     uint8_t testMac[6] = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01};
-    uint8_t deviceID = 231;
+    DeviceID deviceID = DeviceID::TestDevice1;
     bool success = registry->addDevice(deviceID, testMac);
     TEST_ASSERT_TRUE(success);
-    
+
     registry->saveToFlash();
 
     TEST_ASSERT_TRUE(check_FLASH_not_empty());
