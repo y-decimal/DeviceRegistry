@@ -19,10 +19,7 @@ using MacArray = uint8_t[6];
 constexpr uint8_t BroadCastMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 // First 251 IDs (0-250) used for devices, (251-255) reserved for error handling
 
-struct MacEntry
-{
-    uint8_t macData[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-};
+struct MacEntry;
 
 template <typename DeviceID, size_t Count>
 class DeviceRegistry
@@ -58,6 +55,13 @@ private:
 #endif
 };
 
+// Full definitions
+struct MacEntry
+{
+    uint8_t macData[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+};
+
+// Template implementation
 template <typename DeviceID, size_t Count>
 DeviceRegistry<DeviceID, Count>::
     DeviceRegistry()
