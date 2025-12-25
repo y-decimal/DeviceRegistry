@@ -42,6 +42,10 @@ public:
 #endif
 
 private:
+  struct MacEntry {
+    uint8_t macData[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+  };
+
   // Compile-time constraints for DeviceID
   static_assert(std::is_enum<DeviceID>::value, "DeviceID must be an enum type");
   static_assert(std::is_same<typename std::underlying_type<DeviceID>::type,
@@ -51,12 +55,8 @@ private:
   static constexpr const char *REGISTRY_NAMESPACE = "dReg";
   static constexpr const char *REGISTRY_KEY = "val";
   static constexpr size_t Count = static_cast<size_t>(DeviceID::Count);
-  static const DeviceID selfID;
-  static const MacEntry selfMac;
-
-  struct MacEntry {
-    uint8_t macData[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-  };
+  DeviceID selfID;
+  MacEntry selfMac;
 
   MacEntry registry[Count]{};
 
