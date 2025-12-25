@@ -26,7 +26,7 @@ REGISTRY_TEMPLATE
 class DeviceRegistry {
 
 public:
-  DeviceRegistry();
+  DeviceRegistry(DeviceID selfID, const uint8_t *selfMacPtr);
 
   bool addDevice(DeviceID deviceID, const uint8_t *macPtr);
   bool removeDevice(DeviceID deviceID);
@@ -35,12 +35,17 @@ public:
   bool updateDeviceMac(DeviceID deviceID, const uint8_t *newMacPtr);
 
   void saveToFlash();
+  void deleteFlash();
 
 #ifdef UNIT_TEST
   void readFromFlash();
 #endif
 
 private:
+  struct MacEntry {
+    uint8_t macData[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+  };
+
   // Compile-time constraints for DeviceID
   static_assert(std::is_enum<DeviceID>::value, "DeviceID must be an enum type");
   static_assert(std::is_same<typename std::underlying_type<DeviceID>::type,
@@ -50,10 +55,8 @@ private:
   static constexpr const char *REGISTRY_NAMESPACE = "dReg";
   static constexpr const char *REGISTRY_KEY = "val";
   static constexpr size_t Count = static_cast<size_t>(DeviceID::Count);
-
-  struct MacEntry {
-    uint8_t macData[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-  };
+  DeviceID selfID;
+  MacEntry selfMac;
 
   MacEntry registry[Count]{};
 
@@ -70,7 +73,9 @@ private:
 
 // Template implementation
 REGISTRY_TEMPLATE
-REGISTRY_PARAMS::DeviceRegistry() {
+REGISTRY_PARAMS::DeviceRegistry(DeviceID selfID, const uint8_t *selfMacPtr) {
+  this->selfID = selfID;
+  memcpy(this->selfMac.macData, selfMacPtr, 6);
 #if USE_FLASH
   DeviceRegistry::readFromFlash();
 #endif
@@ -80,13 +85,24 @@ REGISTRY_TEMPLATE
 bool REGISTRY_PARAMS::addDevice(DeviceID deviceID, const uint8_t *macPtr) {
   size_t index = toIndex(deviceID);
   if (index >= Count) {
+    printf("[DeviceRegistry] Device ID out of bounds: %d\n", index);
     return false; // ID out of bounds
+  }
+
+  if (deviceID == selfID) {
+    printf("[DeviceRegistry] Cannot add self device ID: %d\n", index);
+    return false; // Cannot add self
+  }
+  if (memcmp(macPtr, selfMac.macData, 6) == 0) {
+    printf("[DeviceRegistry] Cannot add self MAC for device ID: %d\n", index);
+    return false; // Cannot add self MAC
   }
 
   if (!memcmp(registry[index].macData, BroadCastMac, 6) == 0)
   // memcmp returns 0 if macData = BroadCastMac
   // we invert to check if macData != BroadCastMac
   {
+    printf("[DeviceRegistry] Device already exists: %d\n", index);
     return false; // Device already exists
   }
 
@@ -96,6 +112,7 @@ bool REGISTRY_PARAMS::addDevice(DeviceID deviceID, const uint8_t *macPtr) {
   // memcmp returns 0 if macData = macPtr
   // we invert to check if macData != macPtr
   {
+    printf("[DeviceRegistry] Copying MAC failed for device ID: %d\n", index);
     return false; // Copying failed
   }
 
@@ -111,10 +128,18 @@ REGISTRY_TEMPLATE
 const uint8_t *REGISTRY_PARAMS::getDeviceMac(DeviceID deviceID) const {
   size_t index = toIndex(deviceID);
   if (index >= Count) {
+    printf("[DeviceRegistry] Device ID out of bounds: %d\n", index);
     return nullptr; // ID out of bounds
   }
 
+  if (deviceID == selfID) {
+    printf("[DeviceRegistry] Returning self MAC for self device ID: %d\n",
+           index);
+    return selfMac.macData; // Return self MAC
+  }
+
   if (memcmp(registry[index].macData, BroadCastMac, 6) == 0) {
+    printf("[DeviceRegistry] Device not registered: %d\n", index);
     return nullptr; // Device not registered
   }
 
@@ -127,10 +152,20 @@ bool REGISTRY_PARAMS::updateDeviceMac(DeviceID deviceID,
   size_t index = toIndex(deviceID);
 
   if (index >= Count) {
+    printf("[DeviceRegistry] Device ID out of bounds: %d\n", index);
     return false; // ID out of bounds
+  }
+  if (deviceID == selfID) {
+    printf("[DeviceRegistry] Cannot update self device ID: %d\n", index);
+    return false; // Cannot update self
+  }
+  if (memcmp(newMacPtr, selfMac.macData, 6) == 0) {
+    printf("[DeviceRegistry] Cannot set self MAC for device ID: %d\n", index);
+    return false; // Cannot set self MAC
   }
 
   if (memcmp(registry[index].macData, BroadCastMac, 6) == 0) {
+    printf("[DeviceRegistry] Device not registered: %d\n", index);
     return false; // Device not registered
   }
 
@@ -150,10 +185,20 @@ void REGISTRY_PARAMS::saveToFlash() {
 REGISTRY_TEMPLATE
 void REGISTRY_PARAMS::readFromFlash() {
 #if USE_FLASH
-  prefs.begin(REGISTRY_NAMESPACE, true);
-  if (prefs.getBytes(REGISTRY_KEY, (uint8_t *)&registry, sizeof(registry)) ==
-      0) {
+  prefs.begin(REGISTRY_NAMESPACE, false);
+  // Check if key exists before reading to avoid error messages
+  if (prefs.isKey(REGISTRY_KEY)) {
+    prefs.getBytes(REGISTRY_KEY, (uint8_t *)&registry, sizeof(registry));
   }
+  prefs.end();
+#endif
+}
+
+REGISTRY_TEMPLATE
+void REGISTRY_PARAMS::deleteFlash() {
+#if USE_FLASH
+  prefs.begin(REGISTRY_NAMESPACE, false);
+  prefs.remove(REGISTRY_KEY);
   prefs.end();
 #endif
 }

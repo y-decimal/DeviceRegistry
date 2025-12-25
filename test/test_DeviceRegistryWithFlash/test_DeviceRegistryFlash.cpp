@@ -6,6 +6,7 @@ enum class DeviceID : uint8_t {
   TestDevice2,
   TestDevice3,
   TestDevice4,
+  TestDeviceSelf,
   Count
 };
 
@@ -16,7 +17,9 @@ void setUp(void) {
   unitPrefs.begin("dReg", false);
   unitPrefs.clear();
   unitPrefs.end();
-  registry = new DeviceRegistry<DeviceID>();
+  registry = new DeviceRegistry<DeviceID>(
+      DeviceID::TestDeviceSelf,
+      (const uint8_t[]){0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00});
 }
 
 void tearDown(void) { delete registry; }
@@ -51,7 +54,7 @@ void test_Registry_flash_initially_empty(void) {
 
 void test_Registry_flash_not_empty_after_save(void) {
   uint8_t testMac[6] = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x01};
-  DeviceID deviceID = DeviceID::TestDevice1;
+  DeviceID deviceID = DeviceID::TestDevice2;
   bool success = registry->addDevice(deviceID, testMac);
   TEST_ASSERT_TRUE(success);
 
