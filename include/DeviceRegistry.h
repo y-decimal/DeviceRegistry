@@ -184,9 +184,10 @@ void REGISTRY_PARAMS::saveToFlash() {
 REGISTRY_TEMPLATE
 void REGISTRY_PARAMS::readFromFlash() {
 #if USE_FLASH
-  prefs.begin(REGISTRY_NAMESPACE, true);
-  if (prefs.getBytes(REGISTRY_KEY, (uint8_t *)&registry, sizeof(registry)) ==
-      0) {
+  prefs.begin(REGISTRY_NAMESPACE, false);
+  // Check if key exists before reading to avoid error messages
+  if (prefs.isKey(REGISTRY_KEY)) {
+    prefs.getBytes(REGISTRY_KEY, (uint8_t *)&registry, sizeof(registry));
   }
   prefs.end();
 #endif
