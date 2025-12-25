@@ -26,7 +26,7 @@ REGISTRY_TEMPLATE
 class DeviceRegistry {
 
 public:
-  DeviceRegistry();
+  DeviceRegistry(DeviceID selfID, const uint8_t *selfMacPtr);
 
   bool addDevice(DeviceID deviceID, const uint8_t *macPtr);
   bool removeDevice(DeviceID deviceID);
@@ -51,6 +51,8 @@ private:
   static constexpr const char *REGISTRY_NAMESPACE = "dReg";
   static constexpr const char *REGISTRY_KEY = "val";
   static constexpr size_t Count = static_cast<size_t>(DeviceID::Count);
+  static const DeviceID selfID;
+  static const MacEntry selfMac;
 
   struct MacEntry {
     uint8_t macData[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -71,7 +73,9 @@ private:
 
 // Template implementation
 REGISTRY_TEMPLATE
-REGISTRY_PARAMS::DeviceRegistry() {
+REGISTRY_PARAMS::DeviceRegistry(DeviceID selfID, const uint8_t *selfMacPtr) {
+  this->selfID = selfID;
+  memcpy(this->selfMac.macData, selfMacPtr, 6);
 #if USE_FLASH
   DeviceRegistry::readFromFlash();
 #endif
@@ -83,6 +87,15 @@ bool REGISTRY_PARAMS::addDevice(DeviceID deviceID, const uint8_t *macPtr) {
   if (index >= Count) {
     printf("Device ID out of bounds: %d\n", index);
     return false; // ID out of bounds
+  }
+
+  if (deviceID == selfID) {
+    printf("Cannot add self device ID: %d\n", index);
+    return false; // Cannot add self
+  }
+  if (memcmp(macPtr, selfMac.macData, 6) == 0) {
+    printf("Cannot add self MAC for device ID: %d\n", index);
+    return false; // Cannot add self MAC
   }
 
   if (!memcmp(registry[index].macData, BroadCastMac, 6) == 0)
@@ -115,10 +128,17 @@ REGISTRY_TEMPLATE
 const uint8_t *REGISTRY_PARAMS::getDeviceMac(DeviceID deviceID) const {
   size_t index = toIndex(deviceID);
   if (index >= Count) {
+    printf("Device ID out of bounds: %d\n", index);
     return nullptr; // ID out of bounds
   }
 
+  if (deviceID == selfID) {
+    printf("Returning self MAC for self device ID: %d\n", index);
+    return selfMac.macData; // Return self MAC
+  }
+
   if (memcmp(registry[index].macData, BroadCastMac, 6) == 0) {
+    printf("Device not registered: %d\n", index);
     return nullptr; // Device not registered
   }
 
@@ -131,10 +151,20 @@ bool REGISTRY_PARAMS::updateDeviceMac(DeviceID deviceID,
   size_t index = toIndex(deviceID);
 
   if (index >= Count) {
+    printf("Device ID out of bounds: %d\n", index);
     return false; // ID out of bounds
+  }
+  if (deviceID == selfID) {
+    printf("Cannot update self device ID: %d\n", index);
+    return false; // Cannot update self
+  }
+  if (memcmp(newMacPtr, selfMac.macData, 6) == 0) {
+    printf("Cannot set self MAC for device ID: %d\n", index);
+    return false; // Cannot set self MAC
   }
 
   if (memcmp(registry[index].macData, BroadCastMac, 6) == 0) {
+    printf("Device not registered: %d\n", index);
     return false; // Device not registered
   }
 
