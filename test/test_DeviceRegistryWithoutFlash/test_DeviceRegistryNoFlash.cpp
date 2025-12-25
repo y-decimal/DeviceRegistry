@@ -6,12 +6,17 @@ enum class DeviceID : uint8_t {
   TestDevice2,
   TestDevice3,
   TestDevice4,
+  TestDeviceSelf,
   Count
 };
 
+const uint8_t selfMac[6] = {0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00};
+
 DeviceRegistry<DeviceID> *registry;
 
-void setUp(void) { registry = new DeviceRegistry<DeviceID>(); }
+void setUp(void) {
+  registry = new DeviceRegistry<DeviceID>(DeviceID::TestDeviceSelf, selfMac);
+}
 
 void tearDown(void) { delete registry; }
 
@@ -27,7 +32,15 @@ void test_all_Macs_initially_broadcast(void) {
   bool isBroadcast = false;
   for (size_t i = 0; i < static_cast<size_t>(DeviceID::Count); i++) {
     DeviceID id = static_cast<DeviceID>(i);
-    isBroadcast = (memcmp(registry->getDeviceMac(id), BroadCastMac, 6) == 0);
+    const uint8_t *mac = registry->getDeviceMac(id);
+    if (mac == nullptr) {
+      continue;
+    }
+    if (id == DeviceID::TestDeviceSelf) {
+      TEST_ASSERT_EQUAL_UINT8_ARRAY(mac, selfMac, 6);
+      continue;
+    }
+    isBroadcast = (memcmp(mac, BroadCastMac, 6) == 0);
     if (!isBroadcast) {
       break;
     }
