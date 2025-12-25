@@ -80,6 +80,7 @@ REGISTRY_TEMPLATE
 bool REGISTRY_PARAMS::addDevice(DeviceID deviceID, const uint8_t *macPtr) {
   size_t index = toIndex(deviceID);
   if (index >= Count) {
+    printf("Device ID out of bounds: %d\n", index);
     return false; // ID out of bounds
   }
 
@@ -87,6 +88,7 @@ bool REGISTRY_PARAMS::addDevice(DeviceID deviceID, const uint8_t *macPtr) {
   // memcmp returns 0 if macData = BroadCastMac
   // we invert to check if macData != BroadCastMac
   {
+    printf("Device already exists: %d\n", index);
     return false; // Device already exists
   }
 
@@ -96,6 +98,7 @@ bool REGISTRY_PARAMS::addDevice(DeviceID deviceID, const uint8_t *macPtr) {
   // memcmp returns 0 if macData = macPtr
   // we invert to check if macData != macPtr
   {
+    printf("Copying MAC failed for device ID: %d\n", index);
     return false; // Copying failed
   }
 
