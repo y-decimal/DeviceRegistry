@@ -35,6 +35,7 @@ public:
   bool updateDeviceMac(DeviceID deviceID, const uint8_t *newMacPtr);
 
   void saveToFlash();
+  void deleteFlash();
 
 #ifdef UNIT_TEST
   void readFromFlash();
@@ -157,6 +158,15 @@ void REGISTRY_PARAMS::readFromFlash() {
   if (prefs.getBytes(REGISTRY_KEY, (uint8_t *)&registry, sizeof(registry)) ==
       0) {
   }
+  prefs.end();
+#endif
+}
+
+REGISTRY_TEMPLATE
+void REGISTRY_PARAMS::deleteFlash() {
+#if USE_FLASH
+  prefs.begin(REGISTRY_NAMESPACE, false);
+  prefs.remove(REGISTRY_KEY);
   prefs.end();
 #endif
 }
