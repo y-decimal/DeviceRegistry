@@ -198,7 +198,9 @@ REGISTRY_TEMPLATE
 void REGISTRY_PARAMS::deleteFlash() {
 #if USE_FLASH
   prefs.begin(REGISTRY_NAMESPACE, false);
-  prefs.remove(REGISTRY_KEY);
+  if (prefs.isKey(REGISTRY_KEY)) {
+    prefs.remove(REGISTRY_KEY);
+  }
   prefs.end();
 #endif
 }
