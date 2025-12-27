@@ -16,8 +16,8 @@
 #include <map>
 #include <type_traits>
 
-#define REGISTRY_TEMPLATE template <typename DeviceID>
-#define REGISTRY_PARAMS DeviceRegistry<DeviceID>
+#define REGISTRY_TEMPLATE template <typename UniqueID>
+#define REGISTRY_PARAMS DeviceRegistry<UniqueID>
 
 using MacArray = uint8_t[6];
 constexpr uint8_t BroadCastMac[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -26,13 +26,13 @@ REGISTRY_TEMPLATE
 class DeviceRegistry {
 
 public:
-  DeviceRegistry(DeviceID selfID, const uint8_t *selfMacPtr);
+  DeviceRegistry(UniqueID selfID, const uint8_t *selfMacPtr);
 
-  bool addDevice(DeviceID deviceID, const uint8_t *macPtr);
-  bool removeDevice(DeviceID deviceID);
+  bool addDevice(UniqueID targetID, const uint8_t *macPtr);
+  bool removeDevice(UniqueID targetID);
 
-  const uint8_t *getDeviceMac(DeviceID deviceID) const;
-  bool updateDeviceMac(DeviceID deviceID, const uint8_t *newMacPtr);
+  const uint8_t *getDeviceMac(UniqueID targetID) const;
+  bool updateDeviceMac(UniqueID targetID, const uint8_t *newMacPtr);
 
   void saveToFlash();
   void deleteFlash();
@@ -46,23 +46,23 @@ private:
     uint8_t macData[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
   };
 
-  // Compile-time constraints for DeviceID
-  static_assert(std::is_enum<DeviceID>::value, "DeviceID must be an enum type");
-  static_assert(std::is_same<typename std::underlying_type<DeviceID>::type,
+  // Compile-time constraints for UniqueID
+  static_assert(std::is_enum<UniqueID>::value, "UniqueID must be an enum type");
+  static_assert(std::is_same<typename std::underlying_type<UniqueID>::type,
                              uint8_t>::value,
-                "DeviceID underlying type must be uint8_t");
+                "UniqueID underlying type must be uint8_t");
 
   static constexpr const char *REGISTRY_NAMESPACE = "dReg";
   static constexpr const char *REGISTRY_KEY = "val";
-  static constexpr size_t Count = static_cast<size_t>(DeviceID::Count);
-  DeviceID selfID;
+  static constexpr size_t Count = static_cast<size_t>(UniqueID::Count);
+  UniqueID selfID;
   MacEntry selfMac;
 
   MacEntry registry[Count]{};
 
   Preferences prefs;
 
-  static constexpr size_t toIndex(DeviceID id);
+  static constexpr size_t toIndex(UniqueID id);
 
 #ifndef UNIT_TEST
   void readFromFlash();
@@ -73,7 +73,7 @@ private:
 
 // Template implementation
 REGISTRY_TEMPLATE
-REGISTRY_PARAMS::DeviceRegistry(DeviceID selfID, const uint8_t *selfMacPtr) {
+REGISTRY_PARAMS::DeviceRegistry(UniqueID selfID, const uint8_t *selfMacPtr) {
   this->selfID = selfID;
   memcpy(this->selfMac.macData, selfMacPtr, 6);
 #if USE_FLASH
@@ -82,14 +82,14 @@ REGISTRY_PARAMS::DeviceRegistry(DeviceID selfID, const uint8_t *selfMacPtr) {
 }
 
 REGISTRY_TEMPLATE
-bool REGISTRY_PARAMS::addDevice(DeviceID deviceID, const uint8_t *macPtr) {
-  size_t index = toIndex(deviceID);
+bool REGISTRY_PARAMS::addDevice(UniqueID targetID, const uint8_t *macPtr) {
+  size_t index = toIndex(targetID);
   if (index >= Count) {
     printf("[DeviceRegistry] Device ID out of bounds: %d\n", index);
     return false; // ID out of bounds
   }
 
-  if (deviceID == selfID) {
+  if (targetID == selfID) {
     printf("[DeviceRegistry] Cannot add self device ID: %d\n", index);
     return false; // Cannot add self
   }
@@ -120,19 +120,19 @@ bool REGISTRY_PARAMS::addDevice(DeviceID deviceID, const uint8_t *macPtr) {
 }
 
 REGISTRY_TEMPLATE
-bool REGISTRY_PARAMS::removeDevice(DeviceID deviceID) {
-  return updateDeviceMac(deviceID, BroadCastMac);
+bool REGISTRY_PARAMS::removeDevice(UniqueID targetID) {
+  return updateDeviceMac(targetID, BroadCastMac);
 }
 
 REGISTRY_TEMPLATE
-const uint8_t *REGISTRY_PARAMS::getDeviceMac(DeviceID deviceID) const {
-  size_t index = toIndex(deviceID);
+const uint8_t *REGISTRY_PARAMS::getDeviceMac(UniqueID targetID) const {
+  size_t index = toIndex(targetID);
   if (index >= Count) {
     printf("[DeviceRegistry] Device ID out of bounds: %d\n", index);
     return nullptr; // ID out of bounds
   }
 
-  if (deviceID == selfID) {
+  if (targetID == selfID) {
     printf("[DeviceRegistry] Returning self MAC for self device ID: %d\n",
            index);
     return selfMac.macData; // Return self MAC
@@ -147,15 +147,15 @@ const uint8_t *REGISTRY_PARAMS::getDeviceMac(DeviceID deviceID) const {
 }
 
 REGISTRY_TEMPLATE
-bool REGISTRY_PARAMS::updateDeviceMac(DeviceID deviceID,
+bool REGISTRY_PARAMS::updateDeviceMac(UniqueID targetID,
                                       const uint8_t *newMacPtr) {
-  size_t index = toIndex(deviceID);
+  size_t index = toIndex(targetID);
 
   if (index >= Count) {
     printf("[DeviceRegistry] Device ID out of bounds: %d\n", index);
     return false; // ID out of bounds
   }
-  if (deviceID == selfID) {
+  if (targetID == selfID) {
     printf("[DeviceRegistry] Cannot update self device ID: %d\n", index);
     return false; // Cannot update self
   }
@@ -206,8 +206,8 @@ void REGISTRY_PARAMS::deleteFlash() {
 }
 
 REGISTRY_TEMPLATE
-constexpr size_t REGISTRY_PARAMS::toIndex(DeviceID deviceID) {
-  return static_cast<size_t>(deviceID);
+constexpr size_t REGISTRY_PARAMS::toIndex(UniqueID targetID) {
+  return static_cast<size_t>(targetID);
 }
 
 #endif
